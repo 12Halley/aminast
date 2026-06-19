@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gato DJ 🎵</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{font-family:'Nunito',sans-serif;min-height:100vh;background:#1a0a2e;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1rem;}
+        .stars{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;}
+        .star{position:absolute;border-radius:50%;background:white;animation:twinkle var(--dur) ease-in-out infinite;}
+        @keyframes twinkle{0%,100%{opacity:0.15;}50%{opacity:0.8;}}
+        .back-btn{position:fixed;top:1.2rem;left:1.2rem;z-index:100;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.2);color:white;font-family:'Nunito',sans-serif;font-weight:700;padding:0.6rem 1.2rem;border-radius:50px;cursor:pointer;transition:all 0.3s;font-size:0.95rem;}
+        .back-btn:hover{background:rgba(255,255,255,0.2);transform:translateX(-3px);}
+        .wrapper{position:relative;z-index:2;width:100%;max-width:400px;display:flex;flex-direction:column;align-items:center;gap:1rem;}
+        h1{font-size:2rem;font-weight:800;background:linear-gradient(135deg,#ffb347,#ff9de2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-align:center;}
+        .status{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:16px;padding:0.8rem 1.5rem;color:rgba(255,255,255,0.85);font-size:1.05rem;font-weight:700;text-align:center;min-height:3rem;display:flex;align-items:center;justify-content:center;width:100%;}
+        .hud{display:flex;gap:1rem;justify-content:center;}
+        .hud span{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);padding:0.35rem 1rem;border-radius:50px;color:rgba(255,255,255,0.85);font-weight:700;font-size:1rem;}
+        .hud .label{color:rgba(255,255,255,0.5);font-size:0.8rem;}
+        .dj-pad{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;}
+        .dj-btn{aspect-ratio:1;border:none;border-radius:20px;font-size:3rem;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;justify-content:center;user-select:none;position:relative;overflow:hidden;}
+        .dj-btn::after{content:'';position:absolute;inset:0;background:rgba(255,255,255,0);transition:background 0.1s;}
+        .dj-btn:active::after,.dj-btn.lit::after{background:rgba(255,255,255,0.35);}
+        .dj-btn.lit{transform:scale(0.93);}
+        .dj-btn[data-n="0"]{background:linear-gradient(135deg,#ff6b9d,#c44dff);}
+        .dj-btn[data-n="1"]{background:linear-gradient(135deg,#ffb347,#ff6b6b);}
+        .dj-btn[data-n="2"]{background:linear-gradient(135deg,#4ecdc4,#44a3f7);}
+        .dj-btn[data-n="3"]{background:linear-gradient(135deg,#86efac,#22c55e);}
+        .btn{padding:0.8rem 2rem;border:none;border-radius:50px;font-family:'Nunito',sans-serif;font-size:1rem;font-weight:800;cursor:pointer;transition:all 0.3s;background:linear-gradient(135deg,#ffb347,#ff6b9d);color:white;box-shadow:0 4px 15px rgba(255,179,71,0.4);}
+        .btn:hover{transform:translateY(-2px) scale(1.05);}
+        .btn:disabled{opacity:0.4;cursor:not-allowed;transform:none;}
+    </style>
+</head>
+<body>
+    <div class="stars" id="stars"></div>
+    <button class="back-btn" onclick="window.location.href='pagina2.html'">← Voltar</button>
+    <div class="wrapper">
+        <h1>🎵 Gato DJ</h1>
+        <div class="hud">
+            <span><span class="label">Nível </span><span id="lvl">0</span></span>
+            <span><span class="label">Pontos </span><span id="sc">0</span></span>
+        </div>
+        <div class="status" id="status">Aperta Iniciar para jogar! 🐱</div>
+        <div class="dj-pad" id="pad">
+            <button class="dj-btn" data-n="0">🎵</button>
+            <button class="dj-btn" data-n="1">🎶</button>
+            <button class="dj-btn" data-n="2">🎸</button>
+            <button class="dj-btn" data-n="3">🥁</button>
+        </div>
+        <button class="btn" id="startBtn" onclick="startGame()">▶ Iniciar Jogo</button>
+    </div>
+    <script>
+        const starsEl=document.getElementById('stars');
+        for(let i=0;i<60;i++){const s=document.createElement('div');s.className='star';const sz=Math.random()*2.5+1;s.style.cssText=`width:${sz}px;height:${sz}px;left:${Math.random()*100}%;top:${Math.random()*100}%;--dur:${2+Math.random()*3}s;animation-delay:${Math.random()*4}s`;starsEl.appendChild(s);}
+
+        const ctx=new AudioContext();
+        const FREQS=[261.63,329.63,392,523.25]; // C4 E4 G4 C5
+        function playTone(n,dur=0.3){
+            const o=ctx.createOscillator(),g=ctx.createGain();
+            o.connect(g);g.connect(ctx.destination);
+            o.type='sine';o.frequency.value=FREQS[n];
+            g.gain.setValueAtTime(0.4,ctx.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+dur);
+            o.start();o.stop(ctx.currentTime+dur);
+        }
+        function playError(){
+            const o=ctx.createOscillator(),g=ctx.createGain();
+            o.connect(g);g.connect(ctx.destination);
+            o.type='sawtooth';o.frequency.value=120;
+            g.gain.setValueAtTime(0.3,ctx.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.4);
+            o.start();o.stop(ctx.currentTime+0.4);
+        }
+
+        const buttons=document.querySelectorAll('.dj-btn');
+        let seq=[],player=[],score=0,waiting=false;
+
+        function startGame(){
+            ctx.resume();
+            seq=[];player=[];score=0;waiting=false;
+            document.getElementById('sc').textContent=0;
+            document.getElementById('lvl').textContent=0;
+            document.getElementById('startBtn').disabled=true;
+            setButtons(false);
+            nextRound();
+        }
+
+        function nextRound(){
+            player=[];
+            seq.push(Math.floor(Math.random()*4));
+            document.getElementById('lvl').textContent=seq.length;
+            document.getElementById('status').textContent='👀 Observa a sequência...';
+            setButtons(false);
+            setTimeout(()=>playSequence(),600);
+        }
+
+        async function playSequence(){
+            const speed=Math.max(250,600-seq.length*25);
+            for(let i=0;i<seq.length;i++){
+                await delay(speed);
+                lightBtn(seq[i],speed*0.7);
+                playTone(seq[i],speed/1000*0.7);
+                await delay(speed*0.8);
+            }
+            await delay(300);
+            document.getElementById('status').textContent='🎵 A tua vez!';
+            setButtons(true);
+            waiting=true;
+        }
+
+        function delay(ms){return new Promise(r=>setTimeout(r,ms));}
+
+        function lightBtn(n,dur){
+            const btn=buttons[n];
+            btn.classList.add('lit');
+            setTimeout(()=>btn.classList.remove('lit'),dur||300);
+        }
+
+        function setButtons(on){
+            buttons.forEach(b=>{b.onclick=on?()=>handlePress(parseInt(b.dataset.n)):null;b.style.cursor=on?'pointer':'default';});
+        }
+
+        function handlePress(n){
+            if(!waiting)return;
+            ctx.resume();
+            playTone(n,0.2);lightBtn(n,200);
+            player.push(n);
+            const idx=player.length-1;
+            if(player[idx]!==seq[idx]){
+                playError();waiting=false;setButtons(false);
+                document.getElementById('status').textContent=`❌ Errado! Pontuação: ${score}`;
+                document.getElementById('startBtn').disabled=false;
+                document.getElementById('startBtn').textContent='▶ Jogar Novamente';
+                return;
+            }
+            if(player.length===seq.length){
+                score++;waiting=false;
+                document.getElementById('sc').textContent=score;
+                document.getElementById('status').textContent='✅ Muito bem! Próxima...';
+                setButtons(false);
+                setTimeout(nextRound,1000);
+            }
+        }
+    </script>
+</body>
+</html>

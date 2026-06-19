@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nonograma – Jogos da Amina</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family: 'Nunito', sans-serif;
+            min-height: 100vh;
+            background: #1a0a2e;
+            color: white;
+            padding: 1rem 1rem 5rem;
+        }
+        .stars { position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0; }
+        .star { position:absolute;border-radius:50%;background:white;animation:twinkle var(--dur) ease-in-out infinite; }
+        @keyframes twinkle { 0%,100%{opacity:0.15;} 50%{opacity:0.8;} }
+
+        .back-btn {
+            position: fixed; top: 1.2rem; left: 1.2rem; z-index:100;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white; font-family: 'Nunito', sans-serif;
+            font-weight: 700; padding: 0.6rem 1.2rem;
+            border-radius: 50px; cursor: pointer; transition: all 0.3s; font-size: 0.95rem;
+        }
+        .back-btn:hover { background: rgba(255,255,255,0.2); transform: translateX(-3px); }
+
+        .container { position:relative; z-index:2; max-width: 700px; margin: 0 auto; }
+
+        h1 {
+            text-align: center;
+            font-size: 2.2rem; font-weight: 800;
+            background: linear-gradient(135deg, #4ecdc4, #44a3f7);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+            margin: 3.5rem 0 0.3rem;
+        }
+        .subtitle { text-align:center; color:rgba(255,255,255,0.5); margin-bottom: 1.5rem; font-size:0.95rem; }
+
+        /* Puzzle selector */
+        .puzzle-selector {
+            display: flex; gap: 0.6rem; justify-content: center;
+            flex-wrap: wrap; margin-bottom: 1.5rem;
+        }
+        .puzzle-btn {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.15);
+            color: rgba(255,255,255,0.7);
+            font-family: 'Nunito', sans-serif; font-weight: 700;
+            padding: 0.5rem 1.1rem; border-radius: 50px;
+            cursor: pointer; transition: all 0.2s; font-size: 0.85rem;
+        }
+        .puzzle-btn:hover, .puzzle-btn.active {
+            background: rgba(78,205,196,0.25);
+            border-color: #4ecdc4; color: #4ecdc4;
+        }
+
+        /* Info */
+        .info-bar {
+            display: flex; justify-content: center; gap: 2rem;
+            margin-bottom: 1.2rem;
+        }
+        .info-item { text-align:center; }
+        .info-val { font-size: 1.5rem; font-weight: 800; color: #4ecdc4; }
+        .info-lbl { font-size: 0.75rem; color: rgba(255,255,255,0.5); }
+
+        /* Grid wrapper */
+        .grid-wrapper {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 20px;
+            padding: 1.2rem;
+            display: inline-block;
+            margin: 0 auto;
+            display: flex;
+            justify-content: center;
+        }
+        .nonogram-table { border-collapse: collapse; }
+
+        /* Clue cells */
+        .clue-cell {
+            min-width: 28px; min-height: 28px;
+            padding: 2px 4px;
+            text-align: center; vertical-align: bottom;
+            font-size: 0.75rem; font-weight: 700;
+            color: rgba(255,255,255,0.8);
+            line-height: 1.3;
+        }
+        .clue-cell.col-clue { vertical-align: bottom; padding-bottom: 4px; }
+        .clue-cell.row-clue { text-align: right; padding-right: 6px; }
+        .corner { min-width: 28px; min-height: 28px; }
+
+        /* Game cells */
+        .cell {
+            width: 34px; height: 34px;
+            border: 1px solid rgba(255,255,255,0.15);
+            cursor: pointer;
+            background: rgba(255,255,255,0.04);
+            transition: background 0.1s;
+            position: relative;
+        }
+        .cell:hover { background: rgba(78,205,196,0.25); }
+        .cell.filled { background: #4ecdc4; border-color: #3bb5ac; }
+        .cell.filled:hover { background: #5dddd4; }
+        .cell.marked {
+            background: rgba(255,255,255,0.05);
+        }
+        .cell.marked::after {
+            content: '✕';
+            position:absolute; top:50%; left:50%;
+            transform:translate(-50%,-50%);
+            font-size: 0.8rem; color: rgba(255,255,255,0.4);
+        }
+        /* 5-cell separators */
+        .cell.sep-right { border-right: 2px solid rgba(255,255,255,0.35); }
+        .cell.sep-bottom { border-bottom: 2px solid rgba(255,255,255,0.35); }
+        .cell.wrong { background: rgba(255,80,80,0.5) !important; }
+        .cell.correct-hint { background: rgba(78,205,196,0.3) !important; }
+
+        .controls {
+            display: flex; gap: 0.8rem; justify-content: center;
+            flex-wrap: wrap; margin-top: 1.2rem;
+        }
+        .ctrl-btn {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.15);
+            color: white; font-family: 'Nunito', sans-serif;
+            font-weight: 700; padding: 0.7rem 1.4rem;
+            border-radius: 12px; cursor: pointer; transition: all 0.2s;
+        }
+        .ctrl-btn:hover { background: rgba(255,255,255,0.15); transform: translateY(-2px); }
+        .ctrl-btn.primary { background: linear-gradient(135deg,#4ecdc4,#44a3f7); border:none; }
+        .ctrl-btn.primary:hover { opacity: 0.9; }
+
+        .mode-indicator {
+            text-align: center; margin-top: 0.8rem;
+            font-size: 0.85rem; color: rgba(255,255,255,0.5);
+        }
+        .mode-indicator span { color: #4ecdc4; font-weight: 700; }
+
+        /* Win overlay */
+        .win-overlay {
+            display: none;
+            position: fixed; inset: 0; z-index: 200;
+            background: rgba(0,0,0,0.75);
+            align-items: center; justify-content: center;
+        }
+        .win-overlay.show { display: flex; }
+        .win-box {
+            background: linear-gradient(135deg, #1a0a2e, #2d1b69);
+            border: 1px solid rgba(78,205,196,0.4);
+            border-radius: 24px; padding: 2.5rem;
+            text-align: center; max-width: 360px; width: 90%;
+        }
+        .win-emoji { font-size: 4rem; margin-bottom: 1rem; display:block; }
+        .win-title { font-size: 2rem; font-weight: 800; color: #4ecdc4; margin-bottom: 0.5rem; }
+        .win-sub { color: rgba(255,255,255,0.6); margin-bottom: 1.5rem; }
+
+        @media (max-width: 480px) {
+            .cell { width: 26px; height: 26px; }
+            .clue-cell { min-width: 22px; font-size: 0.65rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="stars" id="stars"></div>
+    <button class="back-btn" onclick="window.location.href='pagina2.html'">← Voltar</button>
+
+    <div class="container">
+        <h1>🖼️ Nonograma</h1>
+        <p class="subtitle">Preenche as células para revelar a imagem escondida!</p>
+
+        <div class="puzzle-selector" id="puzzleSelector"></div>
+
+        <div class="info-bar">
+            <div class="info-item"><div class="info-val" id="errorsVal">0</div><div class="info-lbl">Erros</div></div>
+            <div class="info-item"><div class="info-val" id="timeVal">0:00</div><div class="info-lbl">Tempo</div></div>
+            <div class="info-item"><div class="info-val" id="progressVal">0%</div><div class="info-lbl">Completo</div></div>
+        </div>
+
+        <div class="grid-wrapper">
+            <table class="nonogram-table" id="nonogramTable"></table>
+        </div>
+
+        <div class="mode-indicator">Modo: <span id="modeLabel">Preencher</span> &nbsp;|&nbsp; Clique direito = Marcar X</div>
+
+        <div class="controls">
+            <button class="ctrl-btn" onclick="toggleMode()">🔄 Trocar Modo</button>
+            <button class="ctrl-btn" onclick="resetPuzzle()">🔁 Reiniciar</button>
+            <button class="ctrl-btn primary" onclick="checkSolution()">✅ Verificar</button>
+        </div>
+    </div>
+
+    <div class="win-overlay" id="winOverlay">
+        <div class="win-box">
+            <span class="win-emoji" id="winEmoji">🎉</span>
+            <div class="win-title">Parabéns!</div>
+            <div class="win-sub" id="winSub">Resolveste o nonograma!</div>
+            <button class="ctrl-btn primary" style="width:100%" onclick="nextPuzzle()">Próximo Puzzle →</button>
+        </div>
+    </div>
+
+    <script>
+        // Puzzles: solution is a 2D array, 1=filled, 0=empty
+        const PUZZLES = [
+            {
+                name: "Gato 🐱", emoji: "😺",
+                grid: [
+                    [0,1,1,1,0],
+                    [1,1,1,1,1],
+                    [1,0,1,0,1],
+                    [1,1,1,1,1],
+                    [0,1,0,1,0]
+                ]
+            },
+            {
+                name: "Coração 💕", emoji: "💕",
+                grid: [
+                    [0,1,0,1,0],
+                    [1,1,1,1,1],
+                    [1,1,1,1,1],
+                    [0,1,1,1,0],
+                    [0,0,1,0,0]
+                ]
+            },
+            {
+                name: "Estrela ⭐", emoji: "⭐",
+                grid: [
+                    [0,0,1,0,0],
+                    [0,1,1,1,0],
+                    [1,1,1,1,1],
+                    [0,1,1,1,0],
+                    [1,0,1,0,1]
+                ]
+            },
+            {
+                name: "Casa 🏠", emoji: "🏠",
+                grid: [
+                    [0,0,1,0,0,0,0],
+                    [0,1,1,1,0,0,0],
+                    [1,1,1,1,1,0,0],
+                    [1,1,1,1,1,0,0],
+                    [1,0,1,1,0,0,0],
+                    [1,1,1,1,1,0,0],
+                    [1,1,1,1,1,0,0]
+                ]
+            },
+            {
+                name: "Flor 🌸", emoji: "🌸",
+                grid: [
+                    [0,1,0,1,0],
+                    [1,1,1,1,1],
+                    [0,1,1,1,0],
+                    [1,1,1,1,1],
+                    [0,1,0,1,0]
+                ]
+            },
+            {
+                name: "Lua 🌙", emoji: "🌙",
+                grid: [
+                    [0,1,1,0,0,0,0],
+                    [1,0,0,1,0,0,0],
+                    [1,0,0,0,1,0,0],
+                    [1,0,0,0,1,0,0],
+                    [1,0,0,0,1,0,0],
+                    [1,0,0,1,0,0,0],
+                    [0,1,1,0,0,0,0]
+                ]
+            }
+        ];
+
+        let currentPuzzleIdx = 0;
+        let userGrid = [];
+        let mode = 'fill'; // 'fill' or 'mark'
+        let errors = 0;
+        let timerInterval = null;
+        let seconds = 0;
+        let isDragging = false;
+        let dragValue = null;
+
+        function getClues(lines) {
+            return lines.map(line => {
+                const clues = [];
+                let count = 0;
+                for (let v of line) {
+                    if (v === 1) count++;
+                    else if (count > 0) { clues.push(count); count = 0; }
+                }
+                if (count > 0) clues.push(count);
+                return clues.length ? clues : [0];
+            });
+        }
+
+        function buildPuzzle(idx) {
+            currentPuzzleIdx = idx;
+            const puzzle = PUZZLES[idx];
+            const sol = puzzle.grid;
+            const rows = sol.length;
+            const cols = sol[0].length;
+
+            userGrid = Array.from({length: rows}, () => Array(cols).fill(0));
+            errors = 0;
+            seconds = 0;
+            clearInterval(timerInterval);
+            timerInterval = setInterval(updateTimer, 1000);
+            document.getElementById('errorsVal').textContent = 0;
+            document.getElementById('timeVal').textContent = '0:00';
+            document.getElementById('progressVal').textContent = '0%';
+            document.getElementById('winOverlay').classList.remove('show');
+
+            // Update active btn
+            document.querySelectorAll('.puzzle-btn').forEach((b,i) => b.classList.toggle('active', i===idx));
+
+            const rowClues = getClues(sol);
+            const colClues = getClues(sol[0].map((_,c) => sol.map(r => r[c])));
+
+            const table = document.getElementById('nonogramTable');
+            table.innerHTML = '';
+
+            // Header row with col clues
+            const maxColClues = Math.max(...colClues.map(c=>c.length));
+            for (let ci = 0; ci < maxColClues; ci++) {
+                const tr = document.createElement('tr');
+                // corner
+                const corner = document.createElement('td');
+                corner.className = 'corner';
+                tr.appendChild(corner);
+                // col clue cells
+                colClues.forEach(clue => {
+                    const td = document.createElement('td');
+                    td.className = 'clue-cell col-clue';
+                    const lineIdx = ci - (maxColClues - clue.length);
+                    td.textContent = lineIdx >= 0 ? clue[lineIdx] : '';
+                    tr.appendChild(td);
+                });
+                table.appendChild(tr);
+            }
+
+            // Game rows
+            const maxRowClues = Math.max(...rowClues.map(r=>r.length));
+            sol.forEach((row, ri) => {
+                const tr = document.createElement('tr');
+                // row clue
+                const td = document.createElement('td');
+                td.className = 'clue-cell row-clue';
+                td.innerHTML = rowClues[ri].join('<br>');
+                tr.appendChild(td);
+                // cells
+                row.forEach((_, ci) => {
+                    const cell = document.createElement('td');
+                    cell.className = 'cell';
+                    if ((ci+1) % 5 === 0 && ci < cols-1) cell.classList.add('sep-right');
+                    if ((ri+1) % 5 === 0 && ri < rows-1) cell.classList.add('sep-bottom');
+                    cell.dataset.r = ri;
+                    cell.dataset.c = ci;
+                    cell.addEventListener('mousedown', onCellDown);
+                    cell.addEventListener('mouseover', onCellOver);
+                    cell.addEventListener('contextmenu', e => { e.preventDefault(); markCell(ri, ci); });
+                    tr.appendChild(cell);
+                });
+                table.appendChild(tr);
+            });
+
+            document.addEventListener('mouseup', () => { isDragging = false; dragValue = null; });
+        }
+
+        function onCellDown(e) {
+            e.preventDefault();
+            if (e.button === 2) return;
+            isDragging = true;
+            const r = +this.dataset.r, c = +this.dataset.c;
+            dragValue = userGrid[r][c] === 1 ? 0 : 1;
+            toggleCell(r, c);
+        }
+        function onCellOver(e) {
+            if (!isDragging) return;
+            const r = +this.dataset.r, c = +this.dataset.c;
+            if (dragValue === 1 && userGrid[r][c] !== 1) toggleCell(r, c);
+            else if (dragValue === 0 && userGrid[r][c] === 1) toggleCell(r, c);
+        }
+
+        function toggleCell(r, c) {
+            if (mode === 'fill') {
+                userGrid[r][c] = userGrid[r][c] === 1 ? 0 : 1;
+            } else {
+                userGrid[r][c] = userGrid[r][c] === 2 ? 0 : 2;
+            }
+            updateCellDisplay(r, c);
+            updateProgress();
+        }
+        function markCell(r, c) {
+            userGrid[r][c] = userGrid[r][c] === 2 ? 0 : 2;
+            updateCellDisplay(r, c);
+        }
+
+        function updateCellDisplay(r, c) {
+            const cell = document.querySelector(`.cell[data-r="${r}"][data-c="${c}"]`);
+            cell.classList.remove('filled','marked','wrong','correct-hint');
+            if (userGrid[r][c] === 1) cell.classList.add('filled');
+            else if (userGrid[r][c] === 2) cell.classList.add('marked');
+        }
+
+        function updateProgress() {
+            const sol = PUZZLES[currentPuzzleIdx].grid;
+            const rows = sol.length, cols = sol[0].length;
+            let total = 0, done = 0;
+            sol.forEach((row,r) => row.forEach((v,c) => {
+                if (v === 1) { total++; if (userGrid[r][c] === 1) done++; }
+            }));
+            document.getElementById('progressVal').textContent = Math.round(done/total*100) + '%';
+        }
+
+        function updateTimer() {
+            seconds++;
+            const m = Math.floor(seconds/60), s = seconds%60;
+            document.getElementById('timeVal').textContent = `${m}:${s.toString().padStart(2,'0')}`;
+        }
+
+        function toggleMode() {
+            mode = mode === 'fill' ? 'mark' : 'fill';
+            document.getElementById('modeLabel').textContent = mode === 'fill' ? 'Preencher' : 'Marcar X';
+        }
+
+        function resetPuzzle() {
+            buildPuzzle(currentPuzzleIdx);
+        }
+
+        function checkSolution() {
+            const sol = PUZZLES[currentPuzzleIdx].grid;
+            let correct = true;
+            sol.forEach((row,r) => row.forEach((v,c) => {
+                const cell = document.querySelector(`.cell[data-r="${r}"][data-c="${c}"]`);
+                cell.classList.remove('wrong','correct-hint');
+                if (v === 1 && userGrid[r][c] !== 1) { cell.classList.add('wrong'); correct = false; }
+                else if (v === 0 && userGrid[r][c] === 1) { cell.classList.add('wrong'); correct = false; errors++; }
+            }));
+            document.getElementById('errorsVal').textContent = errors;
+            if (correct) {
+                clearInterval(timerInterval);
+                const m = Math.floor(seconds/60), s = seconds%60;
+                document.getElementById('winEmoji').textContent = PUZZLES[currentPuzzleIdx].emoji;
+                document.getElementById('winSub').textContent = `Resolveste em ${m}:${s.toString().padStart(2,'0')} com ${errors} erros!`;
+                document.getElementById('winOverlay').classList.add('show');
+            }
+        }
+
+        function nextPuzzle() {
+            buildPuzzle((currentPuzzleIdx + 1) % PUZZLES.length);
+        }
+
+        // Build puzzle selector
+        const selector = document.getElementById('puzzleSelector');
+        PUZZLES.forEach((p, i) => {
+            const btn = document.createElement('button');
+            btn.className = 'puzzle-btn' + (i===0?' active':'');
+            btn.textContent = p.name;
+            btn.onclick = () => buildPuzzle(i);
+            selector.appendChild(btn);
+        });
+
+        // Stars
+        const starsEl = document.getElementById('stars');
+        for (let i=0;i<60;i++){const s=document.createElement('div');s.className='star';const sz=Math.random()*2.5+1;s.style.cssText=`width:${sz}px;height:${sz}px;left:${Math.random()*100}%;top:${Math.random()*100}%;--dur:${2+Math.random()*3}s;animation-delay:${Math.random()*4}s`;starsEl.appendChild(s);}
+
+        buildPuzzle(0);
+    </script>
+</body>
+</html>

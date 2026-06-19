@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Galeria das Memórias 🙃</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{font-family:'Nunito',sans-serif;min-height:100vh;background:#1a0a2e;padding:1rem 1rem 3rem;}
+        .stars{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;}
+        .star{position:absolute;border-radius:50%;background:white;animation:twinkle var(--dur) ease-in-out infinite;}
+        @keyframes twinkle{0%,100%{opacity:0.15;}50%{opacity:0.8;}}
+        .back-btn{position:fixed;top:1.2rem;left:1.2rem;z-index:100;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.2);color:white;font-family:'Nunito',sans-serif;font-weight:700;padding:0.6rem 1.2rem;border-radius:50px;cursor:pointer;transition:all 0.3s;font-size:0.95rem;}
+        .back-btn:hover{background:rgba(255,255,255,0.2);transform:translateX(-3px);}
+        .page-header{position:relative;z-index:2;text-align:center;padding:3rem 1rem 2rem;}
+        h1{font-size:2.4rem;font-weight:800;background:linear-gradient(135deg,#4ecdc4,#44a3f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:0.4rem;}
+        .subtitle{color:rgba(255,255,255,0.5);font-size:1rem;}
+        .gallery{position:relative;z-index:2;display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.5rem;max-width:1100px;margin:0 auto;padding:0 0.5rem;}
+        .photo-card{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:20px;overflow:hidden;transition:all 0.35s cubic-bezier(0.34,1.56,0.64,1);cursor:pointer;}
+        .photo-card:hover{transform:translateY(-8px) scale(1.02);border-color:rgba(78,205,196,0.4);box-shadow:0 20px 50px rgba(0,0,0,0.5);}
+        .photo-card img{width:100%;aspect-ratio:1;object-fit:cover;display:block;transition:transform 0.4s;}
+        .photo-card:hover img{transform:scale(1.05);}
+        .photo-card .caption{padding:0.9rem 1rem;text-align:center;color:rgba(255,255,255,0.85);font-weight:700;font-size:1rem;}
+        /* Lightbox */
+        .lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:1000;align-items:center;justify-content:center;flex-direction:column;gap:1rem;padding:1rem;}
+        .lightbox.open{display:flex;}
+        .lightbox img{max-width:90vw;max-height:80vh;object-fit:contain;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,0.8);}
+        .lightbox .lb-title{color:white;font-size:1.2rem;font-weight:700;}
+        .lightbox .lb-close{position:fixed;top:1.5rem;right:1.5rem;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:white;font-size:1.5rem;border-radius:50%;width:48px;height:48px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.3s;}
+        .lightbox .lb-close:hover{background:rgba(255,255,255,0.25);transform:scale(1.1);}
+        .lightbox .lb-nav{display:flex;gap:1rem;}
+        .lightbox .lb-btn{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:white;padding:0.5rem 1.2rem;border-radius:50px;cursor:pointer;font-family:'Nunito',sans-serif;font-weight:700;transition:all 0.2s;}
+        .lightbox .lb-btn:hover{background:rgba(255,255,255,0.25);}
+    </style>
+</head>
+<body>
+    <div class="stars" id="stars"></div>
+    <button class="back-btn" onclick="window.location.href='index.html'">← Voltar</button>
+    <div class="page-header">
+        <h1>🙃 Galeria das Memórias</h1>
+        <p class="subtitle">Clica nas fotos para ampliar ✨</p>
+    </div>
+    <div class="gallery" id="gallery"></div>
+
+    <div class="lightbox" id="lightbox">
+        <button class="lb-close" onclick="closeLB()">✕</button>
+        <img id="lbImg" src="" alt="">
+        <p class="lb-title" id="lbTitle"></p>
+        <div class="lb-nav">
+            <button class="lb-btn" onclick="navLB(-1)">← Anterior</button>
+            <button class="lb-btn" onclick="navLB(1)">Próxima →</button>
+        </div>
+    </div>
+
+    <script>
+        const starsEl=document.getElementById('stars');
+        for(let i=0;i<80;i++){const s=document.createElement('div');s.className='star';const sz=Math.random()*2.5+1;s.style.cssText=`width:${sz}px;height:${sz}px;left:${Math.random()*100}%;top:${Math.random()*100}%;--dur:${2+Math.random()*3}s;animation-delay:${Math.random()*4}s`;starsEl.appendChild(s);}
+
+        const photos=[
+            {src:'admv.jpg',title:'Uma batata com uma flor 🌸'},
+            {src:'O tiro.jpg',title:'O tiro 📸'},
+            {src:'O chão.jpg',title:'O chão 🌿'},
+            {src:'O espelho.jpg',title:'O espelho ✨'},
+        ];
+
+        let current=0;
+        const gallery=document.getElementById('gallery');
+        photos.forEach((p,i)=>{
+            const card=document.createElement('div');
+            card.className='photo-card';
+            card.innerHTML=`<img src="${p.src}" alt="${p.title}" loading="lazy" onerror="this.style.display='none'"><div class="caption">${p.title}</div>`;
+            card.onclick=()=>openLB(i);
+            gallery.appendChild(card);
+        });
+
+        function openLB(i){
+            current=i;
+            document.getElementById('lbImg').src=photos[i].src;
+            document.getElementById('lbTitle').textContent=photos[i].title;
+            document.getElementById('lightbox').classList.add('open');
+        }
+        function closeLB(){document.getElementById('lightbox').classList.remove('open');}
+        function navLB(dir){current=(current+dir+photos.length)%photos.length;openLB(current);}
+        document.getElementById('lightbox').addEventListener('click',e=>{if(e.target===e.currentTarget)closeLB();});
+        document.addEventListener('keydown',e=>{
+            if(document.getElementById('lightbox').classList.contains('open')){
+                if(e.key==='ArrowLeft')navLB(-1);
+                if(e.key==='ArrowRight')navLB(1);
+                if(e.key==='Escape')closeLB();
+            }
+        });
+    </script>
+</body>
+</html>

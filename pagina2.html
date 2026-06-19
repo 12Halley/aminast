@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogos da Amina 🎮</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{font-family:'Nunito',sans-serif;min-height:100vh;background:#1a0a2e;padding:2rem 1rem 5rem;}
+        .stars{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;}
+        .star{position:absolute;border-radius:50%;background:white;animation:twinkle var(--dur) ease-in-out infinite;}
+        @keyframes twinkle{0%,100%{opacity:0.15;}50%{opacity:0.8;}}
+        .page-header{position:relative;z-index:2;text-align:center;margin-bottom:2.5rem;padding-top:1rem;}
+        .back-btn{position:fixed;top:1.2rem;left:1.2rem;z-index:100;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.2);color:white;font-family:'Nunito',sans-serif;font-weight:700;padding:0.6rem 1.2rem;border-radius:50px;cursor:pointer;transition:all 0.3s;font-size:0.95rem;}
+        .back-btn:hover{background:rgba(255,255,255,0.2);transform:translateX(-3px);}
+        h1{font-size:2.8rem;font-weight:800;background:linear-gradient(135deg,#ff9de2,#ffb347,#ff6b9d);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:0.4rem;}
+        .subtitle{color:rgba(255,255,255,0.5);font-size:1rem;}
+        .games-grid{position:relative;z-index:2;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1.5rem;max-width:900px;margin:0 auto;}
+        .game-card{background:rgba(255,255,255,0.07);backdrop-filter:blur(15px);border:1px solid rgba(255,255,255,0.12);border-radius:24px;padding:2rem 1.5rem;text-align:center;text-decoration:none;color:inherit;transition:all 0.35s cubic-bezier(0.34,1.56,0.64,1);cursor:pointer;display:block;}
+        .game-card:hover{transform:translateY(-8px) scale(1.02);border-color:rgba(255,255,255,0.3);box-shadow:0 20px 50px rgba(0,0,0,0.4);}
+        .game-icon{font-size:3.5rem;margin-bottom:1rem;display:block;}
+        .game-title{font-size:1.3rem;font-weight:800;margin-bottom:0.6rem;}
+        .game-desc{font-size:0.9rem;line-height:1.5;color:rgba(255,255,255,0.6);}
+        .game-badge{display:inline-block;margin-top:0.8rem;padding:0.25rem 0.8rem;border-radius:50px;font-size:0.75rem;font-weight:700;letter-spacing:0.5px;}
+        .card-pink .game-title{color:#ff9de2;}.card-pink .game-badge{background:rgba(255,157,226,0.2);color:#ff9de2;}.card-pink:hover{background:rgba(255,107,157,0.15);}
+        .card-purple .game-title{color:#c084fc;}.card-purple .game-badge{background:rgba(192,132,252,0.2);color:#c084fc;}.card-purple:hover{background:rgba(139,92,246,0.15);}
+        .card-orange .game-title{color:#ffb347;}.card-orange .game-badge{background:rgba(255,179,71,0.2);color:#ffb347;}.card-orange:hover{background:rgba(255,137,0,0.15);}
+        .card-teal .game-title{color:#4ecdc4;}.card-teal .game-badge{background:rgba(78,205,196,0.2);color:#4ecdc4;}.card-teal:hover{background:rgba(0,188,212,0.15);}
+        .card-green .game-title{color:#86efac;}.card-green .game-badge{background:rgba(134,239,172,0.2);color:#86efac;}.card-green:hover{background:rgba(34,197,94,0.15);}
+        .card-blue .game-title{color:#93c5fd;}.card-blue .game-badge{background:rgba(147,197,253,0.2);color:#93c5fd;}.card-blue:hover{background:rgba(59,130,246,0.15);}
+        @media(max-width:480px){h1{font-size:2rem;}.games-grid{grid-template-columns:1fr 1fr;gap:1rem;}.game-card{padding:1.2rem 1rem;}.game-icon{font-size:2.5rem;}.game-title{font-size:1rem;}.game-desc,.game-badge{display:none;}}
+    </style>
+</head>
+<body>
+    <div class="stars" id="stars"></div>
+    <button class="back-btn" onclick="window.location.href='index.html'">← Voltar</button>
+    <div class="page-header">
+        <h1>🎮 Jogos da Amina</h1>
+        <p class="subtitle">Escolhe um jogo e diverte-te! 🌟</p>
+    </div>
+    <div class="games-grid">
+        <a href="cat-catcher.html" class="game-card card-pink">
+            <span class="game-icon">🐱</span>
+            <h2 class="game-title">Pegador de Petiscos</h2>
+            <p class="game-desc">Ajuda o gatinho a apanhar petiscos e evita as bombas!</p>
+            <span class="game-badge">AÇÃO</span>
+        </a>
+        <a href="memory-game.html" class="game-card card-purple">
+            <span class="game-icon">🧠</span>
+            <h2 class="game-title">Memória Felina</h2>
+            <p class="game-desc">Encontra todos os pares de gatinhos!</p>
+            <span class="game-badge">MEMÓRIA</span>
+        </a>
+        <a href="dj-cat.html" class="game-card card-orange">
+            <span class="game-icon">🎵</span>
+            <h2 class="game-title">Gato DJ</h2>
+            <p class="game-desc">Repete a sequência musical do gatinho DJ!</p>
+            <span class="game-badge">RITMO</span>
+        </a>
+        <a href="nonograma.html" class="game-card card-teal">
+            <span class="game-icon">🖼️</span>
+            <h2 class="game-title">Nonograma</h2>
+            <p class="game-desc">Resolve puzzles de lógica para revelar imagens escondidas!</p>
+            <span class="game-badge">LÓGICA ✨</span>
+        </a>
+        <a href="caca-palavras.html" class="game-card card-green">
+            <span class="game-icon">🔤</span>
+            <h2 class="game-title">Caça-palavras</h2>
+            <p class="game-desc">Encontra todas as palavras escondidas na grelha!</p>
+            <span class="game-badge">PALAVRAS ✨</span>
+        </a>
+        <a href="quebra-cabeca.html" class="game-card card-blue">
+            <span class="game-icon">🧩</span>
+            <h2 class="game-title">Quebra-cabeça</h2>
+            <p class="game-desc">Desliza as peças para montar a imagem completa!</p>
+            <span class="game-badge">PUZZLE ✨</span>
+        </a>
+    </div>
+    <script>
+        const starsEl=document.getElementById('stars');
+        for(let i=0;i<80;i++){const s=document.createElement('div');s.className='star';const size=Math.random()*2.5+1;s.style.cssText=`width:${size}px;height:${size}px;left:${Math.random()*100}%;top:${Math.random()*100}%;--dur:${2+Math.random()*3}s;animation-delay:${Math.random()*4}s`;starsEl.appendChild(s);}
+    </script>
+</body>
+</html>

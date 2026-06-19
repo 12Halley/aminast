@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Amina 🌸</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{font-family:'Nunito',sans-serif;min-height:100vh;background:#1a0a2e;padding:1rem 1rem 3rem;display:flex;flex-direction:column;align-items:center;}
+        .stars{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;}
+        .star{position:absolute;border-radius:50%;background:white;animation:twinkle var(--dur) ease-in-out infinite;}
+        @keyframes twinkle{0%,100%{opacity:0.15;}50%{opacity:0.8;}}
+        .back-btn{position:fixed;top:1.2rem;left:1.2rem;z-index:100;background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.2);color:white;font-family:'Nunito',sans-serif;font-weight:700;padding:0.6rem 1.2rem;border-radius:50px;cursor:pointer;transition:all 0.3s;font-size:0.95rem;}
+        .back-btn:hover{background:rgba(255,255,255,0.2);transform:translateX(-3px);}
+        .wrapper{position:relative;z-index:2;width:100%;max-width:640px;padding-top:1rem;display:flex;flex-direction:column;gap:1rem;}
+        h1{font-size:2rem;font-weight:800;background:linear-gradient(135deg,#ffb347,#ff6b9d);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-align:center;padding-top:0.5rem;}
+        .progress-wrap{background:rgba(255,255,255,0.08);border-radius:50px;height:8px;overflow:hidden;}
+        .progress-bar{height:100%;background:linear-gradient(90deg,#ffb347,#ff6b9d);border-radius:50px;transition:width 0.4s ease;}
+        .hud{display:flex;gap:0.8rem;flex-wrap:wrap;justify-content:space-between;align-items:center;}
+        .hud-item{color:rgba(255,255,255,0.7);font-size:0.9rem;font-weight:700;}
+        .hud-item strong{color:#ff9de2;font-size:1.1rem;}
+        .anime-card{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:20px;overflow:hidden;}
+        .anime-img-wrap{width:100%;height:200px;overflow:hidden;background:#0d0620;}
+        .anime-img-wrap img{width:100%;height:100%;object-fit:cover;object-position:top;display:block;}
+        .anime-name{padding:0.6rem 1rem;font-size:0.85rem;font-weight:700;color:rgba(255,179,71,0.9);text-transform:uppercase;letter-spacing:1px;}
+        .question{padding:0 1rem 1rem;font-size:1.1rem;font-weight:700;color:white;line-height:1.5;}
+        .options{display:grid;gap:0.7rem;}
+        .opt{padding:0.85rem 1.2rem;border:2px solid rgba(255,255,255,0.15);border-radius:14px;background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.85);font-family:'Nunito',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;text-align:left;transition:all 0.2s;}
+        .opt:hover:not(:disabled){background:rgba(255,179,71,0.15);border-color:rgba(255,179,71,0.5);transform:translateX(4px);}
+        .opt.correct{background:rgba(134,239,172,0.2);border-color:#86efac;color:#86efac;}
+        .opt.wrong{background:rgba(255,107,107,0.2);border-color:#ff6b6b;color:#ff6b6b;}
+        .opt:disabled{cursor:default;}
+        .feedback{padding:0.7rem 1rem;border-radius:12px;font-weight:700;font-size:0.95rem;display:none;}
+        .feedback.show{display:block;}
+        .feedback.correct{background:rgba(134,239,172,0.15);color:#86efac;border:1px solid rgba(134,239,172,0.3);}
+        .feedback.wrong{background:rgba(255,107,107,0.15);color:#ff8585;border:1px solid rgba(255,107,107,0.3);}
+        .btn{padding:0.8rem 2rem;border:none;border-radius:50px;font-family:'Nunito',sans-serif;font-size:1rem;font-weight:800;cursor:pointer;transition:all 0.3s;background:linear-gradient(135deg,#ffb347,#ff6b9d);color:white;box-shadow:0 4px 15px rgba(255,179,71,0.3);}
+        .btn:hover{transform:translateY(-2px) scale(1.05);}
+        .result-card{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:24px;padding:2rem;text-align:center;display:none;}
+        .result-card.show{display:block;}
+        .result-emoji{font-size:4rem;margin-bottom:0.5rem;}
+        .result-title{font-size:1.6rem;font-weight:800;color:#ff9de2;margin-bottom:0.5rem;}
+        .result-score{font-size:1.1rem;color:rgba(255,255,255,0.7);margin-bottom:0.5rem;}
+        .result-level{font-size:1.2rem;font-weight:800;color:#ffb347;margin-bottom:1.5rem;}
+    </style>
+</head>
+<body>
+    <div class="stars" id="stars"></div>
+    <button class="back-btn" onclick="window.location.href='index.html'">← Voltar</button>
+    <div class="wrapper">
+        <h1>🌸 Quiz Amina</h1>
+        <div id="quizSection">
+            <div style="display:flex;flex-direction:column;gap:1rem" id="quizBody">
+                <div class="hud">
+                    <span class="hud-item">Pergunta <strong id="qNum">1</strong>/<strong id="qTotal">?</strong></span>
+                    <span class="hud-item">✅ <strong id="correct">0</strong> &nbsp; ❌ <strong id="wrong">0</strong></span>
+                </div>
+                <div class="progress-wrap"><div class="progress-bar" id="progress" style="width:0%"></div></div>
+                <div class="anime-card">
+                    <div class="anime-img-wrap"><img id="animeImg" src="" alt=""></div>
+                    <div class="anime-name" id="animeName"></div>
+                    <div class="question" id="questionText"></div>
+                </div>
+                <div class="options" id="options"></div>
+                <div class="feedback" id="feedback"></div>
+                <button class="btn" id="nextBtn" style="display:none" onclick="nextQ()">Próxima →</button>
+            </div>
+        </div>
+        <div class="result-card" id="resultCard">
+            <div class="result-emoji" id="resEmoji">🎉</div>
+            <div class="result-title">Quiz Completo!</div>
+            <div class="result-score" id="resScore"></div>
+            <div class="result-level" id="resLevel"></div>
+            <button class="btn" onclick="restartQuiz()">↺ Jogar Novamente</button>
+        </div>
+    </div>
+    <script>
+        const starsEl=document.getElementById('stars');
+        for(let i=0;i<60;i++){const s=document.createElement('div');s.className='star';const sz=Math.random()*2.5+1;s.style.cssText=`width:${sz}px;height:${sz}px;left:${Math.random()*100}%;top:${Math.random()*100}%;--dur:${2+Math.random()*3}s;animation-delay:${Math.random()*4}s`;starsEl.appendChild(s);}
+
+        const questions=[
+            // BTS / Laufey / Barbie / Pokemon / MLP — não anime, perguntas gerais de interesse
+            {anime:"BTS 💜",image:"bts.jpg",q:"Qual é o líder do BTS?",opts:["Jimin","RM","V","Suga"],correct:1},
+            {anime:"BTS 💜",image:"bts.jpg",q:"Qual membro do BTS é também ator de K-Drama?",opts:["Jungkook","Jin","V","J-Hope"],correct:2},
+            {anime:"BTS 💜",image:"bts.jpg",q:"Como se chama o exército de fãs do BTS?",opts:["ONCE","ARMY","STAY","BLINK"],correct:1},
+            {anime:"Laufey 🎵",image:"laufey.jpg",q:"De que país é a cantora Laufey?",opts:["Dinamarca","Noruega","Islândia","Suécia"],correct:2},
+            {anime:"Laufey 🎵",image:"laufey.jpg",q:"Qual instrumento Laufey toca principalmente?",opts:["Guitarra","Piano","Violino","Baixo"],correct:1},
+            {anime:"Laufey 🎵",image:"laufey.jpg",q:"Qual destes é um álbum de Laufey?",opts:["Bewitched","Enchanted","Lover","Midnights"],correct:0},
+            {anime:"Barbie 🩷",image:"barbie.jpg",q:"Quem interpretou a Barbie no filme de 2023?",opts:["Zendaya","Margot Robbie","Florence Pugh","Anne Hathaway"],correct:1},
+            {anime:"Barbie 🩷",image:"barbie.jpg",q:"Quem dirigiu o filme Barbie (2023)?",opts:["Greta Gerwig","Sofia Coppola","Ava DuVernay","Nancy Meyers"],correct:0},
+            {anime:"Pokémon ⚡",image:"pokemon.jpg",q:"Qual é o Pokémon de número 1 na Pokédex?",opts:["Mewtwo","Bulbasaur","Charmander","Pikachu"],correct:1},
+            {anime:"Pokémon ⚡",image:"pokemon.jpg",q:"Qual tipo de Pokémon é Pikachu?",opts:["Fogo","Água","Elétrico","Voador"],correct:2},
+            {anime:"Pokémon ⚡",image:"pokemon.jpg",q:"Qual é o parceiro principal de Ash Ketchum?",opts:["Charizard","Bulbasaur","Pikachu","Eevee"],correct:2},
+            {anime:"My Little Pony 🦄",image:"mlp.jpg",q:"Qual é o nome da pony protagonista de MLP: FiM?",opts:["Rainbow Dash","Twilight Sparkle","Rarity","Pinkie Pie"],correct:1},
+            {anime:"My Little Pony 🦄",image:"mlp.jpg",q:"Como se chama a cidade principal de MLP?",opts:["Canterlot","Ponyville","Cloudsdale","Appleloosa"],correct:1},
+            {anime:"Conan 🔍",image:"conan.jpg",q:"Qual é o nome real de Conan Edogawa?",opts:["Shinichi Kudo","Kaito Kid","Heiji Hattori","Mouri Kogorou"],correct:0},
+            {anime:"Conan 🔍",image:"conan.jpg",q:"Quem transformou Shinichi em criança?",opts:["A Organização Negra","A Interpol","O FBI","Um cientista louco"],correct:0},
+            {anime:"Conan 🔍",image:"conan.jpg",q:"Qual é o nome da filha do detetive Mouri?",opts:["Ai Haibara","Ran Mouri","Sonoko Suzuki","Kazuha Toyama"],correct:1},
+            {anime:"Romantic Killer 💕",image:"Romantic Killer.jpg",q:"Qual é o principal objetivo de Riri no anime?",opts:["Ensinar Anzu a amar","Fazer Anzu abandonar os videogames","Transformar Anzu em heroína","Fazer Anzu se apaixonar"],correct:3},
+            {anime:"Romantic Killer 💕",image:"Romantic Killer.jpg",q:"Qual o nome do amigo de infância de Anzu?",opts:["Junta","Ryuuji","Takashi","Akira"],correct:0},
+            {anime:"Romantic Killer 💕",image:"Romantic Killer.jpg",q:"Anzu é obrigada a lidar com quê pela primeira vez?",opts:["Vários pretendentes românticos","Cuidar de animal mágico","Resolver mistérios","Competir em torneios"],correct:0},
+            {anime:"Seven Deadly Sins ⚔️",image:"sevendeadlysins.jpg",q:"Quem é o capitão dos Sete Pecados Capitais?",opts:["Ban","Meliodas","Escanor","King"],correct:1},
+            {anime:"Seven Deadly Sins ⚔️",image:"sevendeadlysins.jpg",q:"Qual pecado Meliodas representa?",opts:["Gula","Luxúria","Ira","Preguiça"],correct:2},
+            {anime:"Seven Deadly Sins ⚔️",image:"sevendeadlysins.jpg",q:"O poder de Escanor varia com o quê?",opts:["Sua emoção","A posição do sol","Sua saúde","A fase da lua"],correct:1},
+            {anime:"Spy x Family 🕵️",image:"Spy x Family.jpg",q:"Qual é o codinome do espião protagonista?",opts:["Twilight","Nightfall","Shadow","Phantom"],correct:0},
+            {anime:"Spy x Family 🕵️",image:"Spy x Family.jpg",q:"Qual a habilidade especial de Anya?",opts:["Telepatia","Invisibilidade","Superforça","Controle mental"],correct:0},
+            {anime:"Spy x Family 🕵️",image:"Spy x Family.jpg",q:"Qual o nome do cachorro da família Forger?",opts:["Max","Bond","Spike","Snow"],correct:1},
+            {anime:"Demon Slayer 🔥",image:"Demon Slayer.jpg",q:"Quem é o protagonista de Demon Slayer?",opts:["Tanjiro Kamado","Inosuke Hashibira","Zenitsu Agatsuma","Rengoku"],correct:0},
+            {anime:"Demon Slayer 🔥",image:"Demon Slayer.jpg",q:"Qual é o nome da irmã de Tanjiro?",opts:["Nezuko Kamado","Kanao Tsuyuri","Shinobu Kocho","Mitsuri"],correct:0},
+            {anime:"Demon Slayer 🔥",image:"Demon Slayer.jpg",q:"Qual é o Hashira conhecido como Pilar da Chama?",opts:["Kyojuro Rengoku","Tengen Uzui","Giyu Tomioka","Muichiro Tokito"],correct:0},
+        ];
+
+        let shuffled=[],idx=0,correct=0,wrong=0;
+        function shuffle(a){return[...a].sort(()=>Math.random()-0.5);}
+        function restartQuiz(){
+            idx=0;correct=0;wrong=0;
+            shuffled=shuffle(questions);
+            document.getElementById('correct').textContent=0;
+            document.getElementById('wrong').textContent=0;
+            document.getElementById('resultCard').classList.remove('show');
+            document.getElementById('quizSection').style.display='';
+            showQ();
+        }
+        function showQ(){
+            const q=shuffled[idx];
+            document.getElementById('qNum').textContent=idx+1;
+            document.getElementById('qTotal').textContent=shuffled.length;
+            document.getElementById('progress').style.width=((idx/shuffled.length)*100)+'%';
+            document.getElementById('animeName').textContent=q.anime;
+            const img=document.getElementById('animeImg');
+            img.src=q.image;img.alt=q.anime;
+            document.getElementById('questionText').textContent=q.q;
+            document.getElementById('feedback').className='feedback';
+            document.getElementById('nextBtn').style.display='none';
+            const optsEl=document.getElementById('options');
+            optsEl.innerHTML='';
+            // shuffle options keeping track of correct answer text
+            const correctText=q.opts[q.correct];
+            const opts=shuffle(q.opts);
+            opts.forEach(opt=>{
+                const btn=document.createElement('button');
+                btn.className='opt';btn.textContent=opt;
+                btn.onclick=()=>pick(btn,opt,correctText);
+                optsEl.appendChild(btn);
+            });
+        }
+        function pick(btn,chosen,correctText){
+            document.querySelectorAll('.opt').forEach(b=>b.disabled=true);
+            const fb=document.getElementById('feedback');
+            if(chosen===correctText){
+                btn.classList.add('correct');correct++;
+                document.getElementById('correct').textContent=correct;
+                fb.textContent='✅ Correto! 🎉';fb.className='feedback correct show';
+            } else {
+                btn.classList.add('wrong');wrong++;
+                document.getElementById('wrong').textContent=wrong;
+                document.querySelectorAll('.opt').forEach(b=>{if(b.textContent===correctText)b.classList.add('correct');});
+                fb.textContent=`❌ A resposta certa era: ${correctText}`;fb.className='feedback wrong show';
+            }
+            document.getElementById('nextBtn').style.display='block';
+        }
+        function nextQ(){
+            idx++;
+            if(idx<shuffled.length){showQ();}
+            else{showResult();}
+        }
+        function showResult(){
+            document.getElementById('quizSection').style.display='none';
+            const total=shuffled.length,pct=Math.round((correct/total)*100);
+            let emoji='😭',level='Ihh chefe tás mal assim?😭';
+            if(pct>=80){emoji='🏆';level='Yeah chefe, já podes ser uma Otome 🙃';}
+            else if(pct>=60){emoji='🎉';level='Parabéns chefe!';}
+            else if(pct>=40){emoji='😅';level='Quase lá chefe 🙃';}
+            else if(pct>=20){emoji='😬';level='Epha pelo menos acertaste algumas 😭';}
+            document.getElementById('resEmoji').textContent=emoji;
+            document.getElementById('resScore').textContent=`${correct} certas · ${wrong} erradas · ${pct}%`;
+            document.getElementById('resLevel').textContent=level;
+            document.getElementById('resultCard').classList.add('show');
+        }
+        restartQuiz();
+    </script>
+</body>
+</html>
